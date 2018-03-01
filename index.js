@@ -14,7 +14,8 @@ app.use(bodyParser.urlencoded({
   extended: true
 }))
 
-const gifError = "*Seriously, you don't know what the numbers 1-10 are?*\n https://media3.giphy.com/media/3o85xnoIXebk3xYx4Q/giphy.gif"
+const gifImg = "https://media3.giphy.com/media/3o85xnoIXebk3xYx4Q/giphy.gif"
+const gifError = "*Seriously, you don't know what the numbers 1-10 are?*\n"
 
 const giveAF = (number, username) => {
   let message = "*" + username
@@ -50,24 +51,9 @@ const errorResponse = (responseUrl) => {
     attachments: [{
       color: 'danger',
       title: 'ERROR',
-      text: 'NaN 1-10'
+      text: gifError,
+      image_url: gifImg,
     }]
-  })
-}
-
-const writeMessage = (data) => {
-  request({
-    method: 'post',
-    url: 'https://slack.com/api/chat.postMessage',
-    json: data,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer "+ process.env.OAUTH_TOKEN
-    }
-  }, function (error, response, body) {
-    if (error) {
-      console.log(error)
-    }
   })
 }
 
@@ -101,28 +87,20 @@ app.post("/", (req, res) => {
   }
   let i = parseFloat(text)
   if (i < 1 || i > 10) {
-    let data = {
-      token: process.env.SLACK_TOKEN,
-      channel: req.body.user_id,
-      text: gifError,
-      as_user: false,
-    }
-    writeMessage(data)
     errorResponse(responseUrl)
+    res.json()
     return
   }
 
   let message = giveAF(i, req.body.user_name)
 
-  let data = {
-    token: process.env.SLACK_TOKEN,
-    channel: req.body.channel_id,
+  let d = {
+    response_type: "in_channel",
     text: message,
-    as_user: false,
   }
-  writeMessage(data)
 
-  respond(responseUrl, {text: ""})
+  respond(responseUrl, d)
+  res.json()
   return
 })
 
